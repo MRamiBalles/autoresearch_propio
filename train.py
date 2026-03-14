@@ -36,7 +36,7 @@ except (ImportError, ModuleNotFoundError):
     print("Warning: kernels module not found. Falling back to stub (research mode).")
     fa3 = get_kernel_stub(None).flash_attn_interface
 
-from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_success, RESEARCH_METRIC_NAME
+from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_success, RESEARCH_METRIC_NAME, RESEARCH_MODE
 
 # ---------------------------------------------------------------------------
 # GPT Model
@@ -524,8 +524,12 @@ optimizer = model.setup_optimizer(
 
 model = torch.compile(model, dynamic=False)
 
-train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, MAX_SEQ_LEN, "train")
-x, y, epoch = next(train_loader)  # prefetch first batch
+if RESEARCH_MODE != "medical":
+    train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, MAX_SEQ_LEN, "train")
+    x, y, epoch = next(train_loader)  # prefetch first batch
+else:
+    train_loader = None
+    x, y, epoch = None, None, 1
 
 print(f"Time budget: {TIME_BUDGET}s")
 print(f"Gradient accumulation steps: {grad_accum_steps}")
