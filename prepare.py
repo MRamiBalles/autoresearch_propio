@@ -224,6 +224,13 @@ class Tokenizer:
 
     @classmethod
     def from_directory(cls, tokenizer_dir=TOKENIZER_DIR):
+        if RESEARCH_MODE == "medical":
+            class MockEnc:
+                n_vocab = 32768
+                def encode_single_token(self, *args): return 0
+                def encode_ordinary(self, *args): return []
+            return cls(MockEnc())
+        
         with open(os.path.join(tokenizer_dir, "tokenizer.pkl"), "rb") as f:
             enc = pickle.load(f)
         return cls(enc)
@@ -255,6 +262,8 @@ class Tokenizer:
 
 
 def get_token_bytes(device="cpu"):
+    if RESEARCH_MODE == "medical":
+        return torch.zeros(32768, dtype=torch.uint8, device=device)
     path = os.path.join(TOKENIZER_DIR, "token_bytes.pt")
     with open(path, "rb") as f:
         return torch.load(f, map_location=device)
