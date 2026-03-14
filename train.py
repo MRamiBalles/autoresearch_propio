@@ -529,7 +529,10 @@ if RESEARCH_MODE != "medical":
     x, y, epoch = next(train_loader)  # prefetch first batch
 else:
     train_loader = None
-    x, y, epoch = None, None, 1
+    # Dummy inputs for medical mode to avoid crashing GPT.forward
+    x = torch.zeros((DEVICE_BATCH_SIZE, MAX_SEQ_LEN), dtype=torch.long, device=device)
+    y = torch.zeros((DEVICE_BATCH_SIZE, MAX_SEQ_LEN), dtype=torch.long, device=device)
+    epoch = 1
 
 print(f"Time budget: {TIME_BUDGET}s")
 print(f"Gradient accumulation steps: {grad_accum_steps}")
@@ -562,7 +565,8 @@ total_training_time = 0
 step = 0
 
 while True:
-    torch.cuda.synchronize()
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
     t0 = time.time()
     for micro_step in range(grad_accum_steps):
         with autocast_ctx:
@@ -570,7 +574,8 @@ while True:
         train_loss = loss.detach()
         loss = loss / grad_accum_steps
         loss.backward()
-        x, y, epoch = next(train_loader)
+        if train_loader is not None:
+            x, y, epoch = next(train_loader)
 
     # Progress and schedules
     progress = min(total_training_time / TIME_BUDGET, 1.0)
