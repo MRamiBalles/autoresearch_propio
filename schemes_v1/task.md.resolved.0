@@ -1,0 +1,8 @@
+# Task Checklist: GuruSup Interview Preparation
+
+- [x] Research GuruSup company context and founder background
+- [x] Analyze recent technical pivots (Internal Automation, Salespath)
+- [x] Investigate "AI Night Lab" and community presence
+- [x] Verify technology stack (PydanticAI, Go, Agentic Engineering)
+- [/] Structure a Master Interview Preparation Guide
+- [ ] Deliver the guide to the user via `notify_user`

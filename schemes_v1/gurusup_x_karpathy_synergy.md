@@ -1,0 +1,43 @@
+# Sinergia Visionaria: GuruSup x Karpathy Autoresearch
+
+Este documento conecta la filosofía de investigación autónoma de Karpathy (`autoresearch`) con el negocio de agentes de **GuruSup**, dándote una narrativa de nivel "Arquitecto de IA" para tu entrevista.
+
+## 1. El Concepto: "Self-Optimizing Business Agents"
+
+En el repo de Karpathy, un agente modifica su propio código para bajar el `val_bpb`. En GuruSup, podemos aplicar esto a la **automatización de procesos**:
+
+- **El `train.py` Empresarial**: En lugar de código de entrenamiento, los agentes de GuruSup modifican sus **System Prompts**, sus **Herramientas (Tools)** o la **Secuencia de sus Workflows**.
+- **La Métrica (KPI)**: En lugar de `val_bpb`, optimizamos:
+    - **Salespath**: % de leads cualificados (ICP match).
+    - **Customer Support**: % de tickets resueltos sin intervención humana.
+    - **Latencia**: Tiempo de respuesta en la API Realtime.
+
+## 2. Propuesta de Arquitectura: "The Autoresearch Loop for GuruSup"
+
+Imagina proponerle a Víctor Mollá esta estructura para Salespath:
+
+1.  **Branch de Experimentación**: El sistema crea una rama `experiment/pitch-v2`.
+2.  **Modificación Autónoma**: Un "Agente Investigador" modifica el prompt de ventas basándose en los fallos de la semana pasada.
+3.  **Simulación (Fixed Budget)**: El nuevo agente "entrena" (se prueba) contra un set de 100 conversaciones históricas "blind" (un dataset de validación empresarial) durante 5 minutos.
+4.  **Evaluación**: Un "Agente Juez" (asociado a PydanticAI para estructurar la crítica) puntúa el éxito.
+5.  **Merge o Revert**: Si el nuevo prompt convierte mejor, se convierte en el nuevo estándar ("Keep"). Si no, se descarta ("Discard").
+
+**Esto es llevar el "Vibe Coding" al nivel de "Autonomous Company Engineering".**
+
+## 3. Detalles Críticos para Investigar/Mencionar
+
+Para destacar en la entrevista, pregunta o comenta sobre estos "detalles profundos":
+
+- **Synthetic Evals**: *"¿Usáis agentes para generar datasets sintéticos de 'clientes difíciles' y así testear vuestros prompts de Salespath de forma automática, al estilo de los shards de datos de Karpathy?"*
+- **Self-Healing Workflows**: *"He visto que en autoresearch el código se auto-corrige si falla. ¿Tenéis implementado un sistema donde si un agente de Salespath detecta que su herramienta de scraping falla, intente buscar una alternativa en el DOM de forma autónoma?"*
+- **The " Meat Computer" vs "Agent Swarm"**: Usa la metáfora de Karpathy. *"Mi visión es que en GuruSup los humanos no deberíamos programar cada flujo de soporte, sino programar el 'program.md' (las directrices) para que una flota de agentes encuentre el flujo óptimo por nosotros."*
+
+## 4. Cómo construir esta empresa (The "GuruSup 2.0" Blueprint)
+
+1.  **Capa de Infraestructura (Go)**: Un backend ultra-rápido y tipado que soporte millones de llamadas a agentes.
+2.  **Capa de Orquestación (PydanticAI)**: Para que el intercambio de datos entre agentes sea siempre estructurado y nunca "rompa" el sistema.
+3.  **Capa de Optimización (Autoresearch Loop)**: Un sistema que corra tests A/B de prompts e integraciones 24/7, mejorando la empresa mientras el equipo duerme.
+4.  **Capa de Interfaz (Realtime/Voice)**: El "avatar" (Ana) es solo la cara visible de un cerebro que se está optimizando constantemente por debajo.
+
+> [!TIP]
+> Si mencionas que has analizado el repo de Karpathy y ves paralelos directos entre optimizar un modelo de lenguaje y optimizar un proceso de ventas autónomo, Bruno y Víctor verán que no solo eres un programador, sino un pensador estratégico de IA.

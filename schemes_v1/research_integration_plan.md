@@ -1,0 +1,25 @@
+# Plan de Integración: Metodología de Investigación Alejandro Medina Sandín
+
+Este plan detalla cómo hemos integrado los 9 prompts maestros y el flujo de automatización en el workspace `autoresearch` y tu proyecto con GuruSup.
+
+## Cambios Realizados
+
+### Configuración del Workspace
+- #### [NEW] [research.md](file:///d:/autoresearch/.agents/workflows/research.md)
+  Se ha creado un archivo de workflow que permite ejecutar el flujo de investigación técnica mediante comandos o referencia directa. Incluye los prompts de criba, extracción, gap analysis y revisión de arquitectura.
+
+### Documentación de Soporte
+- #### [NEW] [research_mapping.md](file:///C:/Users/Manu/.gemini/antigravity/brain/b6c8753d-c82f-42b4-8458-d1d9a4e0f03c/research_mapping.md)
+  Una tabla comparativa que "traduce" el lenguaje académico al lenguaje de ingeniería de agentes (LLMs/GenAI).
+
+## Plan de Verificación
+
+### Pruebas Manuales
+1. **Validación del Workflow**:
+   - Ejecutar mentalmente o mediante un prompt de prueba el comando `/research` (si se usa una herramienta de soporte de slash commands) o simplemente referenciar el archivo `research.md`.
+   - Verificar que los prompts de la Fase 2 (Gap Analysis) y Fase 3 (Architect Review) contienen las variables correctas para GuruSup.
+2. **Consistencia de Prompts**:
+   - Comparar los 9 prompts generados con la lista original de Alejandro Medina Sandín para asegurar que no se ha perdido profundidad analítica en la traducción técnica.
+
+> [!TIP]
+> Para usar esto ahora mismo, puedes decir: *"Usa el workflow de investigación para analizar el archivo train.py y dime qué gaps técnicos encuentras respecto a las teorías actuales de LLMOps."*
