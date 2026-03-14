@@ -12,6 +12,7 @@ import gc
 import math
 import time
 from dataclasses import dataclass, asdict
+from contextlib import nullcontext
 
 import torch
 import torch.nn as nn
@@ -476,7 +477,7 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed(42)
 torch.set_float32_matmul_precision("high")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-autocast_ctx = torch.amp.autocast(device_type=device.type, dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32)
+autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16) if torch.cuda.is_available() else nullcontext()
 H100_BF16_PEAK_FLOPS = 989.5e12
 
 tokenizer = Tokenizer.from_directory()
@@ -522,7 +523,10 @@ optimizer = model.setup_optimizer(
     weight_decay=WEIGHT_DECAY,
 )
 
-model = torch.compile(model, dynamic=False)
+if device.type == "cuda":
+    model = torch.compile(model, dynamic=False)
+else:
+    print("Warning: Skipping torch.compile on CPU.")
 
 if RESEARCH_MODE != "medical":
     train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, MAX_SEQ_LEN, "train")
