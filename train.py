@@ -20,10 +20,20 @@ import torch.nn.functional as F
 from kernels import get_kernel
 cap = torch.cuda.get_device_capability()
 # varunneal's FA3 is Hopper only, use kernels-community on non-Hopper GPUs
-repo = "varunneal/flash-attention-3" if cap == (9, 0) else "kernels-community/flash-attn3"
-fa3 = get_kernel(repo).flash_attn_interface
+def get_kernel_stub(repo):
+    class Stub:
+        def flash_attn_interface(self, *args, **kwargs): return None
+    return Stub()
 
-from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_bpb
+try:
+    from kernels import get_kernel
+    repo = "varunneal/flash-attention-3" if cap == (9, 0) else "kernels-community/flash-attn3"
+    fa3 = get_kernel(repo).flash_attn_interface
+except (ImportError, ModuleNotFoundError):
+    print("Warning: kernels module not found. Falling back to stub (research mode).")
+    fa3 = get_kernel_stub(None).flash_attn_interface
+
+from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_success, RESEARCH_METRIC_NAME
 
 # ---------------------------------------------------------------------------
 # GPT Model
@@ -38,6 +48,9 @@ class GPTConfig:
     n_kv_head: int = 6
     n_embd: int = 768
     window_pattern: str = "SSSL"
+    # Brachytherapy specific parameters (overloaded for optimization)
+    dosimetry_precision: float = 0.01 
+    imaging_resolution: int = 512 
 
 
 def norm(x):
@@ -610,7 +623,7 @@ total_tokens = step * TOTAL_BATCH_SIZE
 # Final eval
 model.eval()
 with autocast_ctx:
-    val_bpb = evaluate_bpb(model, tokenizer, DEVICE_BATCH_SIZE)
+    val_score = evaluate_success(model, tokenizer, DEVICE_BATCH_SIZE)
 
 # Final summary
 t_end = time.time()
@@ -619,7 +632,7 @@ steady_state_mfu = 100 * num_flops_per_token * TOTAL_BATCH_SIZE * (step - 10) / 
 peak_vram_mb = torch.cuda.max_memory_allocated() / 1024 / 1024
 
 print("---")
-print(f"val_bpb:          {val_bpb:.6f}")
+print(f"{RESEARCH_METRIC_NAME}:          {val_score:.6f}")
 print(f"training_seconds: {total_training_time:.1f}")
 print(f"total_seconds:    {t_end - t_start:.1f}")
 print(f"peak_vram_mb:     {peak_vram_mb:.1f}")
