@@ -26,7 +26,14 @@ except (RuntimeError, AssertionError):
 # varunneal's FA3 is Hopper only, use kernels-community on non-Hopper GPUs
 def get_kernel_stub(repo):
     class Stub:
-        def flash_attn_interface(self, *args, **kwargs): return None
+        def flash_attn_func(self, q, k, v, causal=True, window_size=None):
+            # Fallback to standard PyTorch attention for CPU/Research
+            # q, k, v: (B, T, H, D)
+            q = q.transpose(1, 2) # (B, H, T, D)
+            k = k.transpose(1, 2)
+            v = v.transpose(1, 2)
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=causal)
+            return y.transpose(1, 2) # (B, T, H, D)
     return Stub()
 
 try:
@@ -35,7 +42,7 @@ try:
     fa3 = get_kernel(repo).flash_attn_interface
 except (ImportError, ModuleNotFoundError):
     print("Warning: kernels module not found. Falling back to stub (research mode).")
-    fa3 = get_kernel_stub(None).flash_attn_interface
+    fa3 = get_kernel_stub(None)
 
 from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_success, RESEARCH_METRIC_NAME, RESEARCH_MODE
 
@@ -45,7 +52,7 @@ from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evalua
 
 @dataclass
 class GPTConfig:
-    sequence_len: int = 2048
+    sequence_len: int = 256
     vocab_size: int = 32768
     n_layer: int = 12
     n_head: int = 6
@@ -192,10 +199,10 @@ class GPT(nn.Module):
         head_dim = self.config.n_embd // self.config.n_head
         cos, sin = self._precompute_rotary_embeddings(self.rotary_seq_len, head_dim)
         self.cos, self.sin = cos, sin
-        # Cast embeddings to bf16
-        self.transformer.wte.to(dtype=torch.bfloat16)
-        for ve in self.value_embeds.values():
-            ve.to(dtype=torch.bfloat16)
+        if torch.cuda.is_available():
+            self.transformer.wte.to(dtype=torch.bfloat16)
+            for ve in self.value_embeds.values():
+                ve.to(dtype=torch.bfloat16)
 
     def _precompute_rotary_embeddings(self, seq_len, head_dim, base=10000, device=None):
         if device is None:
@@ -205,7 +212,8 @@ class GPT(nn.Module):
         t = torch.arange(seq_len, dtype=torch.float32, device=device)
         freqs = torch.outer(t, inv_freq)
         cos, sin = freqs.cos(), freqs.sin()
-        cos, sin = cos.bfloat16(), sin.bfloat16()
+        if torch.cuda.is_available():
+            cos, sin = cos.bfloat16(), sin.bfloat16()
         cos, sin = cos[None, :, None, :], sin[None, :, None, :]
         return cos, sin
 
@@ -338,7 +346,10 @@ def muon_step_fused(stacked_grads, stacked_params, momentum_buffer, second_momen
     momentum_buffer.lerp_(stacked_grads, 1 - momentum)
     g = stacked_grads.lerp_(momentum_buffer, momentum)
     # Polar express orthogonalization
-    X = g.bfloat16()
+    if torch.cuda.is_available():
+        X = g.bfloat16()
+    else:
+        X = g.float()
     X = X / (X.norm(dim=(-2, -1), keepdim=True) * 1.02 + 1e-6)
     if g.size(-2) > g.size(-1):
         for a, b, c in polar_express_coeffs[:ns_steps]:
@@ -464,8 +475,8 @@ WARMDOWN_RATIO = 0.5    # fraction of time budget for LR warmdown
 FINAL_LR_FRAC = 0.0     # final LR as fraction of initial
 
 # Model size
-DEPTH = 8               # number of transformer layers
-DEVICE_BATCH_SIZE = 128  # per-device batch size (reduce if OOM)
+DEPTH = 2               # aggressively reduced for CPU
+DEVICE_BATCH_SIZE = 8   # aggressively reduced for CPU
 
 # ---------------------------------------------------------------------------
 # Setup: tokenizer, model, optimizer, dataloader
