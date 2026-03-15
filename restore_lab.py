@@ -4,22 +4,25 @@ import time
 
 def run_bg(cmd, log):
     print(f"Lanzando: {cmd}")
-    # Redirección nativa de PowerShell para evitar bloqueos
-    p_cmd = f"Start-Process powershell -ArgumentList '-Command \"{cmd} >> {log} 2>&1\"' -WindowStyle Hidden"
-    subprocess.Popen(["powershell", "-Command", p_cmd], shell=True)
+    # Usamos una forma más compatible de PowerShell para lanzar en segundo plano con redirección
+    full_cmd = f"Start-Process powershell -ArgumentList '-NoProfile -Command \"{cmd} >> {log} 2>&1\"' -WindowStyle Hidden"
+    subprocess.Popen(["powershell", "-Command", full_cmd], shell=True)
 
 if __name__ == "__main__":
     print("--- Autoresearch Lab Restoration (Shadow Swarm) ---")
-    time.sleep(5) # Espera prolongada para liberar archivos
+    time.sleep(2)
     
-    # 1. Master Long-Term (Medical)
-    run_bg("$env:RESEARCH_MODE='medical'; python train.py --warmup-steps 100", "research_long.log")
+    # Definimos los comandos y sus respectivos logs
+    jobs = [
+        ("$env:RESEARCH_MODE='medical'; python train.py --warmup-steps 100", "research_long.log"),
+        ("$env:RESEARCH_MODE='materials'; python train.py --num-iterations 500 --warmup-steps 100", "swarm_node_01-Materials.log"),
+        ("$env:RESEARCH_MODE='medical'; python train.py --num-iterations 500 --warmup-steps 100", "swarm_node_02-Medical-Scout.log"),
+        ("python shadow_swarm_orchestrator.py", "shadow_orchestrator.log")
+    ]
     
-    # 2. Swarm Nodes (Materials & Medical Scout)
-    run_bg("$env:RESEARCH_MODE='materials'; python train.py --num-iterations 100 --warmup-steps 10", "swarm_node_01-Materials.log")
-    run_bg("$env:RESEARCH_MODE='medical'; python train.py --num-iterations 100 --warmup-steps 10", "swarm_node_02-Medical-Scout.log")
+    for cmd, log in jobs:
+        run_bg(cmd, log)
+        time.sleep(1) # Pausa breve entre lanzamientos
     
-    # 3. Orchestrator
-    run_bg("python shadow_swarm_orchestrator.py", "shadow_orchestrator.log")
-    
-    print("\n[OK] Lab restaurado. Verifique swarm_status.md en 60s.")
+    print("\n[OK] Lab restaurado. El Shadow Swarm está operando en segundo plano.")
+    print("Verifique el estado en 'swarm_status.md' en unos instantes.")
