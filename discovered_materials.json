@@ -1,0 +1,87 @@
+{
+  "discovery_date": "2026-03-15 08:42:01",
+  "source": "JARVIS-DFT 3D",
+  "total_scanned": 75993,
+  "top_candidates": [
+    {
+      "jid": "JVASP-97965",
+      "formula": "LaF3",
+      "formation_energy": -4.42304,
+      "spacegroup": "P-3c1",
+      "bandgap": 6.245,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-144473",
+      "formula": "RbGd3F10",
+      "formation_energy": -4.38669,
+      "spacegroup": "Fm-3m",
+      "bandgap": 4.324,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-39858",
+      "formula": "YbF2",
+      "formation_energy": -4.38553,
+      "spacegroup": "P4_2/mnm",
+      "bandgap": 6.992,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-58395",
+      "formula": "LaF3",
+      "formation_energy": -4.37937,
+      "spacegroup": "P6_3/mmc",
+      "bandgap": 7.036,
+      "ehull": 0.0437
+    },
+    {
+      "jid": "JVASP-14072",
+      "formula": "ErF3",
+      "formation_energy": -4.37655,
+      "spacegroup": "Pnma",
+      "bandgap": 8.094,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-57237",
+      "formula": "HoF3",
+      "formation_energy": -4.37421,
+      "spacegroup": "Pnma",
+      "bandgap": 8.087,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-21683",
+      "formula": "TbF3",
+      "formation_energy": -4.37158,
+      "spacegroup": "Pnma",
+      "bandgap": 8.098,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-14116",
+      "formula": "YF3",
+      "formation_energy": -4.36889,
+      "spacegroup": "Pnma",
+      "bandgap": 7.874,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-95767",
+      "formula": "EuF3",
+      "formation_energy": -4.36569,
+      "spacegroup": "Pnma",
+      "bandgap": 8.097,
+      "ehull": 0.0
+    },
+    {
+      "jid": "JVASP-37945",
+      "formula": "AcF3",
+      "formation_energy": -4.36255,
+      "spacegroup": "I4/mmm",
+      "bandgap": 6.854,
+      "ehull": 0.0
+    }
+  ]
+}
