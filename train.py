@@ -454,6 +454,12 @@ class MuonAdamW(torch.optim.Optimizer):
             elif group['kind'] == 'muon':
                 self._step_muon(group)
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--num-iterations", type=int, default=0)
+parser.add_argument("--warmup-steps", type=int, default=0)
+args = parser.parse_args()
+
 # ---------------------------------------------------------------------------
 # Hyperparameters (edit these directly, no CLI flags needed)
 # ---------------------------------------------------------------------------
@@ -647,7 +653,7 @@ while True:
     step += 1
 
     # Time's up — but only stop after warmup steps so we don't count compilation
-    if step > 10 and total_training_time >= TIME_BUDGET:
+    if (step > 10 and total_training_time >= TIME_BUDGET) or (args.num_iterations > 0 and step >= args.num_iterations):
         break
 
 print()  # newline after \r training log
