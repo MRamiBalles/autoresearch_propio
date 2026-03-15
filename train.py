@@ -62,6 +62,9 @@ class GPTConfig:
     # Brachytherapy specific parameters (overloaded for optimization)
     dosimetry_precision: float = 0.01 
     imaging_resolution: int = 512 
+    # Materials Science specific parameters
+    lattice_vibration_factor: float = 0.5
+    electron_density_res: int = 128
 
 
 def norm(x):
@@ -489,8 +492,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16) if torch.cuda.is_available() else nullcontext()
 H100_BF16_PEAK_FLOPS = 989.5e12
 
-tokenizer = Tokenizer.from_directory()
-vocab_size = tokenizer.get_vocab_size()
+if RESEARCH_MODE not in ["medical", "materials"]:
+    tokenizer = Tokenizer.from_directory()
+    vocab_size = tokenizer.get_vocab_size()
+else:
+    tokenizer = None
+    vocab_size = 32768 # Default for surrogate models
 print(f"Vocab size: {vocab_size:,}")
 
 def build_model_config(depth):
@@ -537,12 +544,12 @@ if device.type == "cuda":
 else:
     print("Warning: Skipping torch.compile on CPU.")
 
-if RESEARCH_MODE != "medical":
+if RESEARCH_MODE not in ["medical", "materials"]:
     train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, MAX_SEQ_LEN, "train")
     x, y, epoch = next(train_loader)  # prefetch first batch
 else:
     train_loader = None
-    # Dummy inputs for medical mode to avoid crashing GPT.forward
+    # Dummy inputs for non-LLM modes to avoid crashing GPT.forward
     x = torch.zeros((DEVICE_BATCH_SIZE, MAX_SEQ_LEN), dtype=torch.long, device=device)
     y = torch.zeros((DEVICE_BATCH_SIZE, MAX_SEQ_LEN), dtype=torch.long, device=device)
     epoch = 1
