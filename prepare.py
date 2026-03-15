@@ -34,7 +34,7 @@ import torch
 # ---------------------------------------------------------------------------
 
 MAX_SEQ_LEN = 256       # context length (reduced for CPU sovereignty)
-TIME_BUDGET = 300        # training time budget in seconds (5 minutes)
+TIME_BUDGET = 14400        # training time budget in seconds (4 hours)
 EVAL_TOKENS = 40 * 524288  # number of tokens for val eval
 
 # MODES: "llm" (text) or "medical" (brachytherapy dosimetry)
