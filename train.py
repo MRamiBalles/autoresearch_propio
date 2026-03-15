@@ -669,9 +669,12 @@ print("---")
 print(f"{RESEARCH_METRIC_NAME}:          {val_score:.6f}")
 print(f"training_seconds: {total_training_time:.1f}")
 print(f"total_seconds:    {t_end - t_start:.1f}")
-print(f"peak_vram_mb:     {peak_vram_mb:.1f}")
-print(f"mfu_percent:      {steady_state_mfu:.2f}")
-print(f"total_tokens_M:   {total_tokens / 1e6:.1f}")
-print(f"num_steps:        {step}")
-print(f"num_params_M:     {num_params / 1e6:.1f}")
 print(f"depth:            {DEPTH}")
+
+# Add results.tsv persistence
+with open("results.tsv", "a") as f:
+    if f.tell() == 0:
+        f.write("timestamp\tmode\tmetric_name\tmetric_value\tlatency_ms\tnum_params_M\n")
+    latency_ms = (total_training_time * 1000 / step) if step > 0 else 0
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    f.write(f"{timestamp}\t{RESEARCH_MODE}\t{RESEARCH_METRIC_NAME}\t{val_score:.6f}\t{latency_ms:.2f}\t{num_params / 1e6:.2f}\n")

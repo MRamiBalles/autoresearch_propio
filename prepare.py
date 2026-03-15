@@ -33,7 +33,7 @@ import torch
 # Constants (fixed, do not modify)
 # ---------------------------------------------------------------------------
 
-MAX_SEQ_LEN = 2048       # context length
+MAX_SEQ_LEN = 256       # context length (reduced for CPU sovereignty)
 TIME_BUDGET = 300        # training time budget in seconds (5 minutes)
 EVAL_TOKENS = 40 * 524288  # number of tokens for val eval
 
@@ -224,7 +224,7 @@ class Tokenizer:
 
     @classmethod
     def from_directory(cls, tokenizer_dir=TOKENIZER_DIR):
-        if RESEARCH_MODE == "medical":
+        if RESEARCH_MODE in ["medical", "materials"]:
             class MockEnc:
                 n_vocab = 32768
                 def encode_single_token(self, *args): return 0
