@@ -1,0 +1,11 @@
+{
+  "case_id": "ST-NGANGA-001",
+  "optimization_status": "Converged",
+  "optimal_coords": [
+    2.0790428759739408,
+    1.9800255416833015
+  ],
+  "target_dose_gyh": 43.42010094219679,
+  "oar_dose_gyh": 0.10527533236572638,
+  "parameters": "TG-43_125I_Oncura_6711"
+}
