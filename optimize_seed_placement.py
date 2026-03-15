@@ -46,8 +46,17 @@ def objective_function(seed_coords, target_points, oar_points, dose_threshold=1.
     if max_oar_dose > dose_threshold:
         penalty = 100 * (max_oar_dose - dose_threshold)**2
         
-    # Total cost (Maximize Target, Minimize Penalty)
-    return -mean_target_dose + penalty
+    # 3. Hot Spot Penalty (Dose too high in any point)
+    hot_spot_limit = 60.0 # Gy/h - Threshold for potential necrosis
+    all_doses = target_doses + oar_doses
+    max_dose = np.max(all_doses)
+    
+    hot_spot_penalty = 0
+    if max_dose > hot_spot_limit:
+        hot_spot_penalty = 50 * (max_dose - hot_spot_limit)**2
+        
+    # Total cost (Maximize Target, Minimize OAR Penalty, Minimize Hot Spot Penalty)
+    return -mean_target_dose + penalty + hot_spot_penalty
 
 def run_optimization():
     print("--- Autoresearch SPO: Starting Inverse Planning (Nganga Line) ---")

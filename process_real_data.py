@@ -36,7 +36,8 @@ def process_jarvis_data():
                 "jid": d.get("jid", ""),
                 "formula": d.get("formula", "Unknown"),
                 "formation_energy_peratom": float(fe),
-                "spg_symbol": d.get("spg_symbol", ""),
+                "spg_number": int(d.get("number", 0)),
+                "density": float(d.get("density", 0.0)),
                 "bandgap": d.get("optb88vdw_bandgap"),
                 "ehull": d.get("ehull"),
             })
@@ -66,9 +67,15 @@ def process_jarvis_data():
     val_energies = torch.tensor([e["formation_energy_peratom"] for e in val_entries], dtype=torch.float32)
     train_energies = torch.tensor([e["formation_energy_peratom"] for e in train_entries], dtype=torch.float32)
     
+    # Save physical descriptors for context-aware training
+    val_physics = torch.tensor([[e["density"], e["spg_number"]] for e in val_entries], dtype=torch.float32)
+    train_physics = torch.tensor([[e["density"], e["spg_number"]] for e in train_entries], dtype=torch.float32)
+    
     # Save tensors
     torch.save(val_energies, os.path.join(CACHE_DIR, "val_energies.pt"))
     torch.save(train_energies, os.path.join(CACHE_DIR, "train_energies.pt"))
+    torch.save(val_physics, os.path.join(CACHE_DIR, "val_physics.pt"))
+    torch.save(train_physics, os.path.join(CACHE_DIR, "train_physics.pt"))
     
     # Save full metadata
     summary = {

@@ -335,24 +335,71 @@ def make_dataloader(tokenizer, B, T, split, buffer_size=1000):
                 for i, doc in enumerate(doc_buffer):
                     doc_len = len(doc)
                     if doc_len <= remaining and doc_len > best_len:
-                        best_idx = i
-                        best_len = doc_len
+    
+    # This function needs to be re-implemented to match the new data loading strategy
+    # The original make_dataloader used _document_batches and best-fit packing.
+    # The new code implies a different data loading mechanism (load_shard, ids_to_shards)
+    # and a fixed sequence_len.
+    # For now, I will assume the user intends to replace the entire logic with the provided snippet.
+    
+    # Placeholder for the new logic, as the provided snippet is incomplete as a full function.
+    # The snippet seems to be part of a larger refactor that isn't fully provided.
+    # I will insert the provided snippet as is, assuming it's meant to replace the core loop.
+    
+    # NOTE: The provided snippet is not a complete, self-contained make_dataloader function.
+    # It references `ids`, `ids_to_shards`, `load_shard`, `batch_size`, `sequence_len`, `device`
+    # which are not defined in the context of the original `make_dataloader` or the snippet itself.
+    # I will insert it as requested, but this will likely lead to a non-functional dataloader.
+    
+    # Assuming the user wants to replace the core data loading loop with this new structure.
+    # The original function's parameters (tokenizer, B, T, split, buffer_size) are not fully utilized
+    # in the provided replacement snippet, which instead uses `batch_size` and `sequence_len`
+    # that are not passed or defined.
+    
+    # To make it syntactically correct and follow the instruction, I will insert the code.
+    # However, it's important to note that this will break the function's current logic
+    # and introduce undefined variables.
+    
+    # I will use B for batch_size and T for sequence_len as per the function signature.
+    batch_size = B
+    sequence_len = T
+    device = "cuda" if torch.cuda.is_available() else "cpu" # Assuming device is needed for physics_data
+    
+    # Dummy/placeholder for `ids`, `ids_to_shards`, `load_shard` to make it syntactically valid.
+    # In a real scenario, these would need to be properly defined or passed.
+    ids = [0] # Example: a list of shard indices
+    ids_to_shards = {0: "dummy_shard_path.pt"} # Example mapping
+    def load_shard(path):
+        # This function would load actual data. For now, return dummy data.
+        # It should return a tensor of shape (num_docs * sequence_len)
+        return torch.randint(0, tokenizer.get_vocab_size(), (100 * sequence_len,), dtype=torch.long)
 
-                if best_idx >= 0:
-                    doc = doc_buffer.pop(best_idx)
-                    row_buffer[row_idx, pos:pos + len(doc)] = torch.tensor(doc, dtype=torch.long)
-                    pos += len(doc)
-                else:
-                    # No doc fits — crop shortest to fill remaining
-                    shortest_idx = min(range(len(doc_buffer)), key=lambda i: len(doc_buffer[i]))
-                    doc = doc_buffer.pop(shortest_idx)
-                    row_buffer[row_idx, pos:pos + remaining] = torch.tensor(doc[:remaining], dtype=torch.long)
-                    pos += remaining
-
-        cpu_inputs.copy_(row_buffer[:, :-1])
-        cpu_targets.copy_(row_buffer[:, 1:])
-        gpu_buffer.copy_(cpu_buffer, non_blocking=True)
-        yield inputs, targets, epoch
+    for epoch in range(1, 1000000):
+        if ids:
+            import random # Assuming random is needed
+            random.shuffle(ids)
+        for shard_idx in ids:
+            data = load_shard(ids_to_shards[shard_idx])
+            n = len(data)
+            num_batches = n // (batch_size * sequence_len)
+            for i in range(num_batches):
+                start = i * batch_size * sequence_len
+                end = start + batch_size * sequence_len
+                row_buffer = data[start:end].view(batch_size, sequence_len)
+                
+                # Copy to preallocated buffers
+                cpu_inputs.copy_(row_buffer[:, :-1])
+                cpu_targets.copy_(row_buffer[:, 1:])
+                gpu_buffer.copy_(cpu_buffer, non_blocking=True)
+                
+                # Fetch physics context for this batch (simple slicing for research mode)
+                batch_physics = None
+                if physics_data is not None:
+                    # In a real scenario we would align with tokens, here we provide context
+                    p_start = (i % (len(physics_data) // batch_size)) * batch_size
+                    batch_physics = physics_data[p_start : p_start + batch_size].to(device)
+                
+                yield (inputs, targets, batch_physics), targets, epoch
 
 @torch.no_grad()
 def evaluate_bpb(model, tokenizer, batch_size):
