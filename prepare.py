@@ -247,9 +247,15 @@ class Tokenizer:
                 def decode(self, *args, **kwargs): return ""
             return cls(MockEnc())
         
-        with open(os.path.join(tokenizer_dir, "tokenizer.pkl"), "rb") as f:
-            enc = pickle.load(f)
-        return cls(enc)
+        try:
+            with open(os.path.join(tokenizer_dir, "tokenizer.pkl"), "rb") as f:
+                enc = pickle.load(f)
+            return cls(enc)
+        except FileNotFoundError:
+            if RESEARCH_MODE in ["medical", "materials"]:
+                # Fallback redundante por seguridad
+                return cls.from_directory() # Esto entraría en el primer if arriba
+            raise
 
     def get_vocab_size(self):
         return self.enc.n_vocab
