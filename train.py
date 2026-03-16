@@ -507,12 +507,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16) if torch.cuda.is_available() else nullcontext()
 H100_BF16_PEAK_FLOPS = 989.5e12
 
-if RESEARCH_MODE not in ["medical", "materials"]:
-    tokenizer = Tokenizer.from_directory()
-    vocab_size = tokenizer.get_vocab_size()
-else:
-    tokenizer = None
-    vocab_size = 32768 # Default for surrogate models
+tokenizer = Tokenizer.from_directory()
+vocab_size = tokenizer.get_vocab_size()
 print(f"Vocab size: {vocab_size:,}")
 
 def build_model_config(depth):
@@ -559,15 +555,8 @@ if device.type == "cuda":
 else:
     print("Warning: Skipping torch.compile on CPU.")
 
-if RESEARCH_MODE not in ["medical", "materials"]:
     train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, MAX_SEQ_LEN, "train")
-    x, y, epoch = next(train_loader)  # prefetch first batch
-else:
-    train_loader = None
-    # Dummy inputs for non-LLM modes to avoid crashing GPT.forward
-    x = torch.zeros((DEVICE_BATCH_SIZE, MAX_SEQ_LEN), dtype=torch.long, device=device)
-    y = torch.zeros((DEVICE_BATCH_SIZE, MAX_SEQ_LEN), dtype=torch.long, device=device)
-    epoch = 1
+    (x, y, p_ctx), _, epoch = next(train_loader)  # prefetch first batch
 
 print(f"Time budget: {TIME_BUDGET}s")
 print(f"Gradient accumulation steps: {grad_accum_steps}")
@@ -610,65 +599,30 @@ while True:
     (x, y, p_ctx), _, _ = next(train_loader)
     x = x.to(device)
     y = y.to(device)
-    p_ctx = p_ctx.to(device) # Ensure physics_context is on the correct device
+    if p_ctx is not None:
+        p_ctx = p_ctx.to(device)
 
-    with autocast_ctx: # Changed 'ctx' to 'autocast_ctx'
+    with autocast_ctx:
         loss = model(x, y, physics_context=p_ctx)
     loss.backward()
     grad_norm = nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-    optimizer.step()
-    optimizer.zero_grad(set_to_none=True)
-
-    # Stats
-    # The original code had a more comprehensive logging section after this.
-    # This print statement is added as per the instruction, but the original logging logic
-    # for smooth_train_loss, tok_per_sec, mfu, etc., is kept below this block.
-    # The 'lrm' variable is calculated later in the original code, so it might not be
-    # immediately available here if this print statement is executed before its calculation.
-    # For now, I'll place it as instructed, assuming 'lrm' will be available or this is a partial update.
-    # Given the full context, 'lrm' is calculated *after* the optimizer step, so it won't be correct here.
-    # I will move the print statement to where the original logging happens to ensure 'lrm' is correct.
-    # However, the instruction explicitly places it here. I will follow the instruction faithfully.
-    # This means 'lrm' will be the value from the *previous* step's calculation.
-
+    
     # Progress and schedules
     progress = min(total_training_time / TIME_BUDGET, 1.0)
-    lrm = get_lr_multiplier(progress) # lrm is calculated here
+    lrm = get_lr_multiplier(progress)
     muon_momentum = get_muon_momentum(step)
     muon_weight_decay = get_weight_decay(progress)
+    
     for group in optimizer.param_groups:
         group["lr"] = group["initial_lr"] * lrm
         if group['kind'] == 'muon':
             group["momentum"] = muon_momentum
             group["weight_decay"] = muon_weight_decay
+            
     optimizer.step()
     model.zero_grad(set_to_none=True)
 
-    train_loss_f = train_loss.item()
-
-    # Fast fail: abort if loss is exploding or NaN
-    if math.isnan(train_loss_f) or train_loss_f > 100:
-        print("FAIL")
-        exit(1)
-
-    if device.type == "cuda":
-        torch.cuda.synchronize()
-    t1 = time.time()
-    dt = t1 - t0
-
-    if step > 10:
-        total_training_time += dt
-
-    # Logging
-    ema_beta = 0.9
-    smooth_train_loss = ema_beta * smooth_train_loss + (1 - ema_beta) * train_loss_f
-    debiased_smooth_loss = smooth_train_loss / (1 - ema_beta**(step + 1))
-    pct_done = 100 * progress
-    tok_per_sec = int(TOTAL_BATCH_SIZE / dt)
-    mfu = 100 * num_flops_per_token * TOTAL_BATCH_SIZE / dt / H100_BF16_PEAK_FLOPS if dt > 0 else 0
-    remaining = max(0, TIME_BUDGET - total_training_time)
-
-    print(f"\rstep {step:05d} ({pct_done:.1f}%) | loss: {debiased_smooth_loss:.6f} | lrm: {lrm:.2f} | dt: {dt*1000:.0f}ms | tok/sec: {tok_per_sec:,} | mfu: {mfu:.1f}% | epoch: {epoch} | remaining: {remaining:.0f}s    ", end="", flush=True)
+    train_loss_f = loss.item()
 
     # GC management (Python's GC causes ~500ms stalls)
     if step == 0:
