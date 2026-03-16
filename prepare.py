@@ -34,7 +34,7 @@ import torch
 # ---------------------------------------------------------------------------
 
 MAX_SEQ_LEN = 256       # context length (reduced for CPU sovereignty)
-TIME_BUDGET = 14400        # training time budget in seconds (4 hours)
+TIME_BUDGET = 86400        # AI Night Lab 24h
 EVAL_TOKENS = 40 * 524288  # number of tokens for val eval
 
 # MODES: "llm" (text) or "medical" (brachytherapy dosimetry)
@@ -54,7 +54,7 @@ VAL_FILENAME = f"shard_{VAL_SHARD:05d}.parquet"
 VOCAB_SIZE = 8192
 
 # BPE split pattern (GPT-4 style, with \p{N}{1,2} instead of {1,3})
-SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,2}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
+SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{L}\p{N}]?+\p{L}+|\p{N}{1,2}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
 
 SPECIAL_TOKENS = [f"<|reserved_{i}|>" for i in range(4)]
 BOS_TOKEN = "<|reserved_0|>"
