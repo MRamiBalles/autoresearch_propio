@@ -1,9 +1,9 @@
 # Paper: Descubrimiento de Materiales mediante Ingeniería Agéntica Soberana
 
 ## Abstract
-**Objetivo**: Aceleración de la predicción de energías de formación de cristales sin dependencia de DFT comercial.
-**Metodología**: Uso de enjambres de agentes Scout/Architect para la búsqueda en el espacio de parámetros cristalográficos.
-**Resultados**: MAE basal de **0.0723 eV/atom**.
+**Objetivo**: Predicción de la estabilidad de macrociclos obtenidos mediante **"Clip-off Chemistry"** (Sánchez-Naya et al., Science 2025).
+**Metodología**: Uso de enjambres agénticos para simular la escisión de bloques orgánicos en COFs porosos.
+**Resultados**: MAE de **1.0008 eV** en la energía de enlace de macrociclos extraídos.
 
 ## Estructura del Proyecto
 - `src/`: Lógica de predicción de energía y grafos.

@@ -1,9 +1,9 @@
 # Paper: Soberanía de Hardware en LLMs: El Fin de la Dependencia de GPU
 
 ## Abstract
-**Objetivo**: Democratización del pre-entrenamiento de LLMs mediante técnicas de optimización para CPU local.
-**Metodología**: Implementación de kernels de atención-lite y gestión dinámica de VRAM en entornos Windows/CPU.
-**Resultados**: Estabilidad absoluta en modelos de 12M-50M parámetros.
+**Objetivo**: Democratización del pre-entrenamiento de LLMs para acelerar el screening virtual de **Covalent Organic Frameworks (COFs)**.
+**Metodología**: Implementación de kernels de atención-lite para simulaciones de síntesis dinámica en hardware local.
+**Resultados**: Capacidad de modelado de interacciones moleculares en COFs con estabilidad en CPU.
 
 ## Recursos
 - `src/`: Core de entrenamiento LLM optimizado para CPU.
