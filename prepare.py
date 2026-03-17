@@ -440,7 +440,7 @@ def evaluate_dosimetry_error(model, batch_size=128):
     Dosimetry Error validation against REAL physical ground truth (Nganga Line).
     Compares model predictions with AAPM TG-43 protocol dose values.
     """
-    gt_path = os.path.join(os.path.expanduser("~"), ".cache", "autoresearch", "real_data", "medical", "val_doses.pt")
+    gt_path = os.path.join(CACHE_DIR, "real_data", "medical", "val_doses.pt")
     
     if os.path.exists(gt_path):
         val_doses = torch.load(gt_path, weights_only=True)
@@ -464,7 +464,7 @@ def evaluate_energy_error(model):
     """
     Crystal Energy Prediction Error against REAL ground truth (Materials Science).
     """
-    gt_path = os.path.join(os.path.expanduser("~"), ".cache", "autoresearch", "real_data", "val_energies.pt")
+    gt_path = os.path.join(CACHE_DIR, "real_data", "val_energies.pt")
     
     if os.path.exists(gt_path):
         val_energies = torch.load(gt_path, weights_only=True)
