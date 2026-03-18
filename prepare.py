@@ -345,7 +345,7 @@ def make_dataloader(tokenizer, B, T, split, buffer_size=1000):
     epoch = 1
 
     # Load physical context if available (Fase 6)
-    physics_path = os.path.join(os.path.expanduser("~"), ".cache", "autoresearch", "real_data", f"{split}_physics.pt")
+    physics_path = os.path.join("D:\\", "Sovereign_Data", "cache", "real_data", f"{split}_physics.pt")
     physics_data = None
     if RESEARCH_MODE == "materials" and os.path.exists(physics_path):
         physics_data = torch.load(physics_path, weights_only=True)
